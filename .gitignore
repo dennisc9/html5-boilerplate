@@ -1,8 +1,7 @@
 # Created by https://www.gitignore.io/api/git,node,sonar,macos,windows,sonarqube
 # Edit at https://www.gitignore.io/?templates=git,node,sonar,macos,windows,sonarqube
 
-public/*
-release/
+dist/
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:

@@ -1,6 +1,7 @@
 import gulp from "gulp";
 import scss from "gulp-sass";
-import less from "gulp-less";
+import browserSync from "browser-sync";
+import clean from "gulp-clean";
 import imagemin from "gulp-imagemin";
 import uglify from "gulp-uglify";
 import cssnano from "gulp-cssnano";
@@ -10,91 +11,58 @@ import autoprefixer from "gulp-autoprefixer";
 import prettify from "gulp-jsbeautifier";
 import gulpIgnore from "gulp-ignore";
 import useref from "gulp-useref";
-import runSequence from "run-sequence";
-import serveStatic from "serve-static";
-import compression from "compression";
-import express from "express";
-import http from "http";
 import del from "del";
-import fs from "file-system";
-import http2 from "spdy";
+import path from "path";
 
 require("dotenv").config();
 
-// console log changed files using gulpIgnore
+const globs = {
+  scss: "src/scss/**/*.scss",
+  css: "src/**/*.css",
+  js: "src/**/*.js",
+  images: "src/**/*.{png,jpg,jpeg,gif,svg}",
+  html: "src/**/*.html",
+  other: [
+    "src/**/*.*",
+    "!src/**/*.html",
+    "!src/**/*.css",
+    "!src/**/*.js",
+    "!src/**/*.less",
+    "!src/**/*.scss",
+    "!src/**/*.png",
+    "!src/**/*.jpg",
+    "!src/**/*.jpeg",
+    "!src/**/*.gif",
+    "!src/**/*.svg"
+  ]
+};
 
-const message = function(file) {
+gulp.task("serve", done => {
+  browserSync({
+    server: "./dist",
+    online: true,
+    notify: false,
+    open: false,
+    port: 4001
+  });
+  done();
+});
+
+// console log changed files using gulpIgnore
+const message = file => {
   console.log(file.path);
   return false;
 };
 
-// server
-
-function serverSetup(protocal) {
-  var app = express();
-  app.use(compression());
-  app.use(
-    serveStatic("./dist", {
-      extensions: ["html"],
-      maxAge: 3600000
-    })
-  );
-  if (protocal === "https") {
-    http2
-      .createServer(
-        {
-          key: fs.readFileSync(
-            process.env.HOME + process.env.SSL_KEY_PATH,
-            "utf8"
-          ),
-          cert: fs.readFileSync(
-            process.env.HOME + process.env.SSL_CRT_PATH,
-            "utf8"
-          )
-        },
-        app
-      )
-      .listen(8888);
-  } else {
-    http.createServer(app).listen(8888);
-  }
-  console.log(protocal + "://localhost:8888");
-}
-
-gulp.task("server", function() {
-  fs.open("./.env", "r", err => {
-    if (err) {
-      if (err.code === "ENOENT") {
-        console.log("no .env file found");
-        serverSetup("http");
-      }
-    } else {
-      fs.readFile("./.env", "utf8", (err, data) => {
-        if (
-          data.indexOf("SSL_CRT_PATH") < 0 ||
-          data.indexOf("SSL_KEY_PATH") < 0
-        ) {
-          console.log("no SSL_CRT_PATH and/or SSL_KEY_PATH found in .env file");
-          serverSetup("http");
-        } else {
-          serverSetup("https");
-        }
-      });
-    }
-  });
-});
-
 // scss compilation + minification
-
-gulp.task("scss", function() {
+gulp.task("scss", () => {
   return gulp
-    .src("src/scss/**/*.scss")
+    .src(globs.scss)
     .pipe(changed("dist/css", { extension: ".css" }))
     .pipe(gulpIgnore(message))
     .pipe(scss())
     .pipe(
       autoprefixer({
-        browsers: [">1%"],
         cascade: false
       })
     )
@@ -103,15 +71,13 @@ gulp.task("scss", function() {
 });
 
 // css minification
-
-gulp.task("css", function() {
+gulp.task("css", () => {
   return gulp
-    .src("src/**/*.css")
+    .src(globs.css)
     .pipe(changed("dist"))
     .pipe(gulpIgnore(message))
     .pipe(
       autoprefixer({
-        browsers: [">1%"],
         cascade: false
       })
     )
@@ -120,10 +86,9 @@ gulp.task("css", function() {
 });
 
 // js minification + uglification
-
-gulp.task("js", function() {
+gulp.task("js", () => {
   return gulp
-    .src("src/**/*.js")
+    .src(globs.js)
     .pipe(changed("dist"))
     .pipe(gulpIgnore(message))
     .pipe(uglify())
@@ -131,10 +96,9 @@ gulp.task("js", function() {
 });
 
 // image optimization
-
-gulp.task("images", function() {
+gulp.task("images", () => {
   return gulp
-    .src("src/**/*.{png,jpg,jpeg,gif,svg}")
+    .src(globs.images)
     .pipe(changed("dist"))
     .pipe(gulpIgnore(message))
     .pipe(
@@ -154,10 +118,9 @@ gulp.task("images", function() {
 });
 
 // html minification and combination off css/js assets
-
-gulp.task("html", function() {
+gulp.task("html", () => {
   return gulp
-    .src("src/**/*.html")
+    .src(globs.html)
     .pipe(gulpIgnore(message))
     .pipe(useref())
     .pipe(
@@ -172,67 +135,59 @@ gulp.task("html", function() {
 });
 
 // copy everything else
-
-gulp.task("other", function() {
+gulp.task("other", () => {
   return gulp
-    .src([
-      "src/**/*.*",
-      "!src/**/*.html",
-      "!src/**/*.css",
-      "!src/**/*.js",
-      "!src/**/*.less",
-      "!src/**/*.scss",
-      "!src/**/*.png",
-      "!src/**/*.jpg",
-      "!src/**/*.jpeg",
-      "!src/**/*.gif",
-      "!src/**/*.svg"
-    ])
+    .src(globs.other)
     .pipe(changed("dist"))
     .pipe(gulpIgnore(message))
     .pipe(gulp.dest("dist"));
 });
 
 // Prettify css js html
-
-gulp.task("prettify:src", function() {
+gulp.task("prettify:src", () => {
   return gulp
-    .src("src/**/*.+(html|css|js|less|scss)")
+    .src("src/**/*.+(html|css|js|scss)")
     .pipe(prettify())
     .pipe(gulp.dest("src"));
 });
 
 // Cleaning
-
-gulp.task("clean", function() {
-  return del.sync("dist");
-});
-
-gulp.task("clean:code", function() {
-  return del.sync([
-    "dist/**/*.*",
-    "!dist/**/*.png",
-    "!dist/**/*.jpg",
-    "!dist/**/*.jpeg",
-    "!dist/**/*.gif",
-    "!dist/**/*.svg"
-  ]);
+gulp.task("clean", () => {
+  return gulp.src(["dist/*"], { read: false }).pipe(clean());
 });
 
 // Build
-
-gulp.task("build", function(callback) {
-  runSequence("scss", "less", "css", "js", "images", "html", "other", callback);
-});
+gulp.task("build", gulp.series("scss", "css", "js", "images", "html", "other"));
 
 // Watch
+const watchDeletedFiles = watcher => {
+  watcher.on("unlink", function(_path) {
+    console.log("event = ", _path);
 
-gulp.task("watch", function() {
-  gulp.watch("src/**/*", ["build"]);
+    const filePathFromSrc = path.relative(path.resolve("src"), _path);
+    const destFilePath = path.resolve("dist", filePathFromSrc);
+    del.sync(destFilePath);
+  });
+};
+
+gulp.task("watch", () => {
+  const watcher = gulp.watch("src/**/*");
+  watchDeletedFiles(watcher);
+
+  gulp.watch(globs.scss, gulp.series("scss", "bs-reload"));
+  gulp.watch(globs.css, gulp.series("css", "bs-reload"));
+  gulp.watch(globs.js, gulp.series("js", "bs-reload"));
+  gulp.watch(globs.images, gulp.series("images", "bs-reload"));
+  gulp.watch(globs.html, gulp.series("html", "bs-reload"));
+  gulp.watch(globs.other, gulp.series("other", "bs-reload"));
 });
+
+gulp.task("bs-reload", done => {
+  browserSync.reload();
+  done();
+});
+
+gulp.task("server-reload", gulp.series("build", "bs-reload"));
 
 // Gulp - Build + Watch + start-servers
-
-gulp.task("default", function(callback) {
-  runSequence("build", "watch", "server", callback);
-});
+gulp.task("default", gulp.series("clean", "build", "serve", "watch"));
