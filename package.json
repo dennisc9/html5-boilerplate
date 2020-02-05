@@ -1,0 +1,51 @@
+{
+  "name": "html5-gulp-boilerplate",
+  "version": "1.0.0",
+  "description": "html5 gulp boilerplate",
+  "main": "index.js",
+  "scripts": {
+    "bsw": "gulp",
+    "build": "gulp build",
+    "clean": "gulp clean:code",
+    "clean-all": "gulp clean",
+    "pretty": "gulp prettify:src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Paul-Browne/html5-gulp-boilerplate.git"
+  },
+  "author": "Paul Browne",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Paul-Browne/html5-gulp-boilerplate/issues"
+  },
+  "homepage": "https://github.com/Paul-Browne/html5-gulp-boilerplate#readme",
+  "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-transform-spread": "^7.8.3",
+    "@babel/preset-env": "^7.8.4",
+    "@babel/register": "^7.8.3",
+    "compression": "^1.6.2",
+    "del": "^3.0.0",
+    "dotenv": "^6.0.0",
+    "express": "^4.15.2",
+    "file-system": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^3.1.0",
+    "gulp-changed": "^3.1.0",
+    "gulp-cssnano": "^2.1.2",
+    "gulp-htmlmin": "^3.0.0",
+    "gulp-ignore": "^2.0.2",
+    "gulp-image": "^4.0.0",
+    "gulp-imagemin": "^7.1.0",
+    "gulp-jsbeautifier": "^2.1.1",
+    "gulp-less": "^3.5.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-uglify": "^3.0.0",
+    "gulp-useref": "^3.1.5",
+    "run-sequence": "^2.2.0",
+    "serve-static": "^1.12.1",
+    "spdy": "^3.4.4"
+  }
+}
